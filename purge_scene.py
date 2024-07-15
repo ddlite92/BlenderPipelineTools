@@ -4,7 +4,6 @@ bl_info = {
     "author": "Monsta",
     "version": (1, 0),
     "blender": (3, 3, 3),
-    # "location": "View3D > Add > Mesh > New Object",
     "category": "Render",
 }
 
@@ -31,8 +30,9 @@ class PurgeSceneOperator(bpy.types.Operator):
         ShowMessageBox("Orphan data purged successfully!")
         return {'FINISHED'}
 
-class SamplePanel(bpy.types.Panel):
+class MonstaPanel(bpy.types.Panel):
     """ Displayy panel in 3D view"""
+    bl_category = "Monsta"
     bl_label = "Addon"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -44,20 +44,19 @@ class SamplePanel(bpy.types.Panel):
         col.operator("object.purge_scene_operator", icon="MESH_CUBE")
 
 classes = (
-        SamplePanel,
+        MonstaPanel,
         PurgeSceneOperator,
         )
 
-def register():
-    bpy.utils.register_class(SamplePanel)
-    bpy.utils.register_class(PurgeSceneOperator)
-    # bpy.utils.register_class(msgBox)
+# register, unregister = bpy.utils.register_classes_factory(classes)
 
+def register():
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 def unregister():
-    bpy.utils.unregister_class(SamplePanel)
-    bpy.utils.register_class(PurgeSceneOperator)
-    # bpy.utils.register_class(msgBox)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":
