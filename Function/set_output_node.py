@@ -84,6 +84,3 @@ def output_node():
         else:
             print("check node name")
             
-
-
-

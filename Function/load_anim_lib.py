@@ -1,6 +1,10 @@
 import bpy
 
 def load_anim_lib():
+    """
+    Loads and links specific collections from the animation blend file.
+    """
+    
     anim_file = get_anim_blendfile()
     collset = {"CHAR", "PROP"} # "VHC", "CAM",
 

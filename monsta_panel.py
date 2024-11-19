@@ -30,21 +30,34 @@ def get_anim_blendfile():
         if file.endswith("_ANIM.blend") : 
             anim_file = os.path.join(anim_file_dir, file)
             return anim_file
-    
-def link_coll():
-    anim_file = get_anim_blendfile()
-    # master_collection = bpy.context.scene.collection
-    master_collection = bpy.data.collections['MAIN']
 
-    with bpy.data.libraries.load(anim_file) as (data_from, data_to):
-        data_to.collections = data_from.collections
+def create_instance(instance_name, parent_collection):
+    """
+    Creates an empty object as an instance of the linked collection.
+    """
 
+    null_object = bpy.data.objects.new(instance_name, None)
+    linked_collection = bpy.data.collections.get(instance_name)
 
-    for new_coll in data_to.collections:
-        instance = bpy.data.objects.new(new_coll.name, None)
-        instance.instance_type = 'COLLECTION'
-        instance.instance_collection = new_coll
-        master_collection.objects.link(instance)
+    if linked_collection:
+        parent_collection.objects.link(null_object)
+        null_object.instance_type = 'COLLECTION'
+        null_object.instance_collection = linked_collection
+    else:
+        print(f"Collection '{instance_name}' not found in linked library.")
+
+def link_collections():
+    """
+    Links collections from the animation blend file to the active collection.
+    """
+
+    active_collection = bpy.context.view_layer.active_layer_collection.collection
+
+    for coll in bpy.data.collections:
+        if coll.library is not None:
+            for target_name in ["CHAR", "PROP", "FX"]:
+                if target_name in coll.name:
+                    create_instance(coll.name, active_collection)
 
 class PurgeSceneOperator(bpy.types.Operator):
      # Operator to perform purge functionality
@@ -73,21 +86,26 @@ class CleanOperator(bpy.types.Operator):
     bl_label = "Clean Setup"
     
     def execute(self, context):
-        main_scn = bpy.data.scenes["Scene"]
-        out_layer = main_scn.view_layers["View Layer"]
-        layer_coll = out_layer.layer_collection.collection
-        
-        objects_to_unlink = [ o for o in layer_coll.all_objects if o.type == "EMPTY" and o.is_instancer]
-        
-        for obj in objects_to_unlink:
-            bpy.data.objects.remove(obj)
+        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+        bg_collection = bpy.data.collections.get("BG")
         
         for coll in bpy.data.collections:
-            if coll.library is not None:
-                bpy.data.collections.remove(coll)
-                
+            if coll == bg_collection:
+                continue
+        
+            for obj in coll.all_objects:
+                bpy.data.objects.remove(obj)
+            
+                if obj.instance_collection is not None:
+                        # If linked instance, unlink it
+                        obj.instance_collection = None
+                else:
+                    # If object, remove it from the scene
+                    bpy.data.objects.remove(obj)
+                    
         for lib in bpy.data.libraries:
-            bpy.data.libraries.remove(lib)
+            if not lib.users:
+                bpy.data.libraries.remove(lib)
            
         return {'FINISHED'}
 
@@ -99,7 +117,7 @@ class LinkAnimFile(bpy.types.Operator):
     
     def execute(self, context):
         get_anim_blendfile()
-        link_coll()
+        link_collections()
         
         report = "LGT File build done !"
 
