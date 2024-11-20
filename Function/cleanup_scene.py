@@ -24,4 +24,22 @@ def cleanup():
         if not lib.users:
             bpy.data.libraries.remove(lib)
 
+'''
+# preseve camera, light
+
+for obj in scene.objects:
+if obj.type not in ['CAMERA', 'LIGHT']:
+scene.collection.objects.unlink(obj)
+bpy.data.objects.remove(obj)
+
+# remove in spesific collection
+
+target_collection = bpy.data.collections['MyCollection']
+for obj in target_collection.objects:
+target_collection.objects.unlink(obj)
+bpy.data.objects.remove(obj)
+
+
+'''
+
 

@@ -20,8 +20,16 @@ from bpy.app.handlers import persistent
 from bpy.utils import previews, register_class, unregister_class
 from pathlib import Path
 
+path = r"M:\BBBGS2_Gentar_Arc\2_Episode\Episode_15\6_Post\3_Output\1_Render\PART B\_MONSTA"
 
+filepath = bpy.data.filepath
+
+mainScreen = bpy.context.window
+node_tree = bpy.context.scene.node_tree
+links = node_tree.links
 # path = str(pathlib.Path().home() / "folder" / "file.blend")
+
+# --------------- render setup
 
 def get_anim_blendfile():
     current_path = bpy.data.filepath
@@ -31,11 +39,18 @@ def get_anim_blendfile():
             anim_file = os.path.join(anim_file_dir, file)
             return anim_file
 
-def create_instance(instance_name, parent_collection):
-    """
-    Creates an empty object as an instance of the linked collection.
-    """
+def load_anim_lib():
+    anim_file = get_anim_blendfile()
+    collset = {"CHAR", "PROP"} # "VHC", "CAM",
 
+    with bpy.data.libraries.load(anim_file, link=True) as (data_from, data_to,):
+        # data_to.objects = data_from.objects
+        # data_to.collections = data_from.collections
+        for collname in data_from.collections:
+                if any(cname in collname for cname in collset):
+                    data_to.collections.append(collname)
+
+def create_instance(instance_name, parent_collection):
     null_object = bpy.data.objects.new(instance_name, None)
     linked_collection = bpy.data.collections.get(instance_name)
 
@@ -47,10 +62,6 @@ def create_instance(instance_name, parent_collection):
         print(f"Collection '{instance_name}' not found in linked library.")
 
 def link_collections():
-    """
-    Links collections from the animation blend file to the active collection.
-    """
-
     active_collection = bpy.context.view_layer.active_layer_collection.collection
 
     for coll in bpy.data.collections:
@@ -58,6 +69,71 @@ def link_collections():
             for target_name in ["CHAR", "PROP", "FX"]:
                 if target_name in coll.name:
                     create_instance(coll.name, active_collection)
+
+# ---------------- render set path
+
+def folder():
+    filename = bpy.path.basename(bpy.context.blend_data.filepath)
+    basename, extension = os.path.splitext(filename)
+    new_basename = basename[:-7]  # Remove "_Render"
+    return new_basename
+
+def scene_name():
+    scene_names = [scene.name for scene in bpy.data.scenes]
+    for scene_name in scene_names:
+        scene = bpy.context.scene.name
+        return scene
+    
+bpy.context.scene.render.filepath = os.path.join(path, folder(), scene_name(), "Beauty", "Beauty_" )
+
+def output_node():
+    for node in mainScreen.scene.node_tree.nodes:
+        nodeBeauty = node_tree.nodes.get("BeautyOutput")
+        current_scene_name = scene_name()
+        if not nodeBeauty:
+            beautyNode = node_tree.nodes.new(type="CompositorNodeOutputFile")
+            beautyNode.location = 500, 1000
+            beautyNode.name = 'BeautyOutput'
+            beautyNode.label = 'Beauty'
+            beauty_node = node_tree.nodes['BeautyOutput']
+            input_socket = beauty_node.inputs['Image']
+            denoise_node = node_tree.nodes['Denoise']
+            output_socket = denoise_node.outputs['Image']
+            links.new(output_socket, input_socket)
+                       
+        elif "Emission" in node.label:
+            node.file_slots[0].path = ''
+            filename = node.file_slots.keys()[0]
+            label_name = node.label.split("_")[-1]
+            node.file_slots[filename].path = label_name + '_'
+            node.base_path = path + "\\" + folder() + "\\" + current_scene_name + "\\" + node.label + "\\"
+            node.format.color_mode = "RGB" 
+        
+        elif "Matte" in node.label:
+            node.file_slots[0].path = ''
+            filename = node.file_slots.keys()[0]
+            label_name = node.label.split("_")[-1]
+            node.file_slots[filename].path = label_name + '_'
+            node.base_path = path + "\\" + folder() + "\\" + current_scene_name  + "\\" + node.label + "\\"
+            node.format.file_format = "OPEN_EXR_MULTILAYER"
+            node.format.color_mode = "RGBA"
+            node.format.color_depth = "32"
+
+        elif node.type == 'OUTPUT_FILE':
+            node.file_slots[0].path = ''
+            filename = node.file_slots.keys()[0]
+            label_name = node.label.split("_")[-1]
+            node.file_slots[filename].path = label_name + '_'
+            node.base_path = path + "\\" + folder() + "\\" + current_scene_name + "\\" + node.label + "\\"
+            node.format.file_format = "PNG"
+            node.format.color_mode = "RGBA"
+            node.format.color_depth = "16"
+
+            
+        else:
+            print("check node name")
+            
+# ----------------- addon stuff
 
 class PurgeSceneOperator(bpy.types.Operator):
      # Operator to perform purge functionality
@@ -83,29 +159,10 @@ class PurgeSceneOperator(bpy.types.Operator):
 class CleanOperator(bpy.types.Operator):
      # Operator to clean the collections
     bl_idname = "object.clean_coll_operator"
-    bl_label = "Clean Setup"
+    bl_label = "Clean Setup (WIP)"
     
     def execute(self, context):
         bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-        bg_collection = bpy.data.collections.get("BG")
-        
-        for coll in bpy.data.collections:
-            if coll == bg_collection:
-                continue
-        
-            for obj in coll.all_objects:
-                bpy.data.objects.remove(obj)
-            
-                if obj.instance_collection is not None:
-                        # If linked instance, unlink it
-                        obj.instance_collection = None
-                else:
-                    # If object, remove it from the scene
-                    bpy.data.objects.remove(obj)
-                    
-        for lib in bpy.data.libraries:
-            if not lib.users:
-                bpy.data.libraries.remove(lib)
            
         return {'FINISHED'}
 
@@ -116,6 +173,7 @@ class LinkAnimFile(bpy.types.Operator):
     bl_label = "Build Setup"
     
     def execute(self, context):
+        load_anim_lib()
         get_anim_blendfile()
         link_collections()
         
@@ -123,6 +181,23 @@ class LinkAnimFile(bpy.types.Operator):
 
         self.report({"INFO"}, f"{report}")
         return {"FINISHED"}
+
+class OutputPath(bpy.types.Operator):
+    # Operator to set path
+    bl_idname =  "object.set_output_path"
+    bl_label = "Set Output Path"
+    
+    def execute(self, context):
+        output_node()
+        
+        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+                def draw(self, context):
+                    self.layout.label(text=message)
+
+                bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
+        ShowMessageBox("Set path done!")
+        return {'FINISHED'}
        
         
 class MonstaPanel(bpy.types.Panel):
@@ -137,16 +212,19 @@ class MonstaPanel(bpy.types.Panel):
         layout = self.layout
         
         col = layout.column(align=True)
-        col.operator("object.purge_scene_operator", icon="MESH_CUBE")
+        col.operator("object.purge_scene_operator", icon="FILE_REFRESH")
         
         row = layout.row()
         row.label(text= "Render Tab")
         
         col = layout.column(align=True)
-        col.operator("object.clean_coll_operator", icon="MESH_CUBE")
+        col.operator("object.clean_coll_operator", icon="TRASH")
         
         col = layout.column(align=True)
-        col.operator("object.link_coll_operator", icon="MESH_CUBE")
+        col.operator("object.link_coll_operator", icon="PREFERENCES")
+        
+        col = layout.column(align=True)
+        col.operator("object.set_output_path", icon="FILEBROWSER")
         
 
 classes = (
@@ -154,6 +232,7 @@ classes = (
         PurgeSceneOperator,
         CleanOperator,
         LinkAnimFile,
+        OutputPath,
         )
 
 # register, unregister = bpy.utils.register_classes_factory(classes)
