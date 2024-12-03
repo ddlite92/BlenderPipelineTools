@@ -3,155 +3,131 @@ import os
 import logging
 from os import path
 from pathlib import Path
+context = bpy.context
+filepath =  bpy.data.filepath
 
-"""
+def get_1st_lvl():
+    filepath =  bpy.data.filepath
+    curr_folder = os.path.dirname(filepath)
+    fifth_curr_folder = os.path.dirname(curr_folder)
+    four_curr_folder = os.path.dirname(fifth_curr_folder)
+    three_curr_folder = os.path.dirname(four_curr_folder)
+    two_curr_folder = os.path.dirname(three_curr_folder)
+    first_level = os.path.dirname(two_curr_folder)
+    return(first_level)    
 
-Still WIP
-- iterate node label
-- function to get 
-    - filename ( to be test )
-    - folder ( to be test )
-    - scene ( done )
-- scene_names function get the first scene only, need to change to index 1,2,3,4 respectively ( fixed )
-- function filename removed due non use
-"""
-path = r"M:\BBBGS2_Gentar_Arc\2_Episode\Episode_15\6_Post\3_Output\1_Render\PART B\_MONSTA"
+def get_workpath():
+    #filepath = bpy.data.filepath
+    #blendpath = '\\'.join(filepath.split('\\')[7:9]) + '\\'
+    blendpath = '\\'.join(filepath.split('\\')[7:8]) + '\\'
+    return(blendpath)   
 
-filepath = bpy.data.filepath
-
-mainScreen = bpy.context.window
-node_tree = bpy.context.scene.node_tree
-links = node_tree.links
-
-def folder():
+def get_shotname():
     filename = bpy.path.basename(bpy.context.blend_data.filepath)
     basename, extension = os.path.splitext(filename)
     new_basename = basename[:-7]  # Remove "_Render"
     return new_basename
 
-def scene_name():
-    scene_names = [scene.name for scene in bpy.data.scenes]
-    for scene_name in scene_names:
-        scene = bpy.context.scene.name
-        return scene
-    
-bpy.context.scene.render.filepath = os.path.join(path, folder(), scene_name(), "Beauty", "Beauty_" )
-
-def output_node():
-    for node in mainScreen.scene.node_tree.nodes:
-        nodeBeauty = node_tree.nodes.get("BeautyOutput")
-        current_scene_name = scene_name()
-        if not nodeBeauty:
-            beautyNode = node_tree.nodes.new(type="CompositorNodeOutputFile")
-            beautyNode.location = 500, 1000
-            beautyNode.name = 'BeautyOutput'
-            beautyNode.label = 'Beauty'
-            beauty_node = node_tree.nodes['BeautyOutput']
-            input_socket = beauty_node.inputs['Image']
-            denoise_node = node_tree.nodes['Denoise']
-            output_socket = denoise_node.outputs['Image']
-            links.new(output_socket, input_socket)
-                       
-        elif "Emission" in node.label:
-            node.file_slots[0].path = ''
-            filename = node.file_slots.keys()[0]
-            label_name = node.label.split("_")[-1]
-            node.file_slots[filename].path = label_name + '_'
-            node.base_path = path + "\\" + folder() + "\\" + current_scene_name + "\\" + node.label + "\\"
-            node.format.color_mode = "RGB" 
+def get_folder():
+    #filepath =  bpy.data.filepath
+    curr_folder = os.path.dirname(filepath)
+    return curr_folder
         
-        elif "Matte" in node.label:
-            node.file_slots[0].path = ''
-            filename = node.file_slots.keys()[0]
-            label_name = node.label.split("_")[-1]
-            node.file_slots[filename].path = label_name + '_'
-            node.base_path = path + "\\" + folder() + "\\" + current_scene_name  + "\\" + node.label + "\\"
+def set_renderpath():
+    set_out = r"6_Post\3_Output\1_Render"
+    #set_out = r"3_Output\1_Render"
+    final = os.path.join(get_1st_lvl(), set_out, get_workpath(), get_shotname())
+    return(final)
+
+def set_main_node():
+    scene = context.scene
+    renderpath = set_renderpath()
+    shotname = get_shotname()
+    #bg_layer = scene.view_layers['_BG']   
+    #main_sc = bpy.data.scenes.get("MAIN")
+
+    local_scenes = [s for s in bpy.data.scenes if not s.library]
+    
+    scenes = [s for s in local_scenes]
+    for scn in scenes:
+            scn.render.filepath = path.join(renderpath + '\\' + shotname)
+    
+    output_nodes = [n for s in scenes for n in s.node_tree.nodes if n.type == "OUTPUT_FILE"]
+    for node in output_nodes:
+        if "_Matte" in node.label:
+            label_name = node.label.split("_Matte")[0]
+            pass_name = 'Matte'
+            splitOutput = os.path.join(renderpath + '\\' + shotname + '_')
+            node.base_path = os.path.join(renderpath + '\\' + label_name + '\\' + pass_name + '\\')
             node.format.file_format = "OPEN_EXR_MULTILAYER"
             node.format.color_mode = "RGBA"
             node.format.color_depth = "32"
-
-        elif node.type == 'OUTPUT_FILE':
-            node.file_slots[0].path = ''
+        
+        elif "_Emission" in node.label:
+            label_name = node.label.split("_Emission")[0]
+            pass_name = node.label.split("_")[1]
             filename = node.file_slots.keys()[0]
-            label_name = node.label.split("_")[-1]
-            node.file_slots[filename].path = label_name + '_'
-            node.base_path = path + "\\" + folder() + "\\" + current_scene_name + "\\" + node.label + "\\"
+            node_output = os.path.join(renderpath + '\\' + label_name + '\\' + pass_name + '\\')
+            node.base_path = node_output
+            node.file_slots[filename].path = pass_name + '_'
+            node.format.file_format = "PNG"
+            node.format.color_mode = "RGB"
+            node.format.color_depth = "16"
+        
+        elif "RIM_" in node.label:
+            #label_name = node.label
+            pass_name = node.label.split("_")[0]
+            filename = node.file_slots.keys()[0]
+            node_output = os.path.join(renderpath + '\\' + pass_name + '\\')
+            node.base_path = node_output
+            node.file_slots[filename].path = pass_name + '_'
             node.format.file_format = "PNG"
             node.format.color_mode = "RGBA"
             node.format.color_depth = "16"
-
-            
+        
+        elif "Lightray_" in node.label:
+            #label_name = node.label
+            pass_name = node.label.split("_")[0]
+            filename = node.file_slots.keys()[0]
+            node_output = os.path.join(renderpath + '\\' + pass_name + '\\')
+            node.base_path = node_output
+            node.file_slots[filename].path = pass_name + '_'
+            node.format.file_format = "PNG"
+            node.format.color_mode = "RGBA"
+            node.format.color_depth = "16"
+                                
         else:
-            print("check node name")
-            
+            label_name = node.label.split(".")[1]
+            label_name = node.label.split("_")[0]
+            pass_name = node.label.split("_")[1]
+            filename = node.file_slots.keys()[0]
+            node_output = os.path.join(renderpath + '\\' + label_name + '\\' + pass_name + '\\')
+            node.base_path = node_output
+            node.file_slots[filename].path = pass_name + '_'
+            node.format.file_format = "PNG"
+            node.format.color_depth = "16" 
+                
+
+set_main_node()
+
 
 '''
-##### to be merged and revised based on this code #####
 
-def set_render_path():
-    base_path = Path(r"M:\BBBGS2_Gentar_Arc\2_Episode\Episode_15\6_Post\3_Output\1_Render")
-    folder_name = bpy.path.basename(bpy.context.blend_data.filepath)[:-7]  # Remove "_Render"
-    scene_name = bpy.context.scene.name
-    output_path = base_path / folder_name / scene_name / "Beauty" / "Beauty_"
+naming T&C :
 
-    # Adjust path separator based on OS
-    if os.name == 'nt':  # Windows
-        output_path = str(output_path)
-    else:  # Linux/macOS
-        output_path = str(output_path).replace('\\', '/')
+main BG = BG.Main_## passes ##
+        = BG.Main_Beauty
 
-    bpy.context.scene.render.filepath = output_path
+main CH = CH.Main_## passes ##
+        = CH.Main_Beauty 
 
+Lightray = Lightray_
+RIM = RIM_
 
-def create_beauty_node():
-  """Creates a BeautyOutput node if it doesn't already exist."""
-  node_tree = bpy.context.scene.node_tree
-  links = node_tree.links
+the rest accordingly .. eg :
 
-  if not node_tree.nodes.get("BeautyOutput"):
-    beauty_node = node_tree.nodes.new(type="CompositorNodeOutputFile")
-    beauty_node.location = 500, 1000
-    beauty_node.name = "BeautyOutput"
-    beauty_node.label = "Beauty"
-    
-    # Assuming there's a Denoise node before BeautyOutput (modify if needed)
-    denoise_node = node_tree.nodes.get("Denoise")
-    if denoise_node:
-      input_socket = beauty_node.inputs["Image"]
-      output_socket = denoise_node.outputs["Image"]
-      links.new(output_socket, input_socket)
-    
-def configure_output_nodes():
-    node_tree = bpy.context.scene.node_tree
-    for node in node_tree.nodes:
-        if node.type in ('OUTPUT_FILE', 'CompositorNodeOutputFile'):
-            node.file_slots[0].path = ""  # Clear existing path
-            label_name = node.label.split("_")[-1]
-
-            # Check if the node is the "BeautyOutput" node
-            if node.name == "BeautyOutput":
-                # If it is, set the base path to the parent directory of the render path
-                node.base_path = str(Path(bpy.context.scene.render.filepath).parent)
-            else:
-                # For other nodes, set the base path as before
-                if "Emission" in node.label:
-                    node.base_path = str(Path(bpy.context.scene.render.filepath).parent / node.label)
-                    node.format.color_mode = "RGB"
-                elif "Matte" in node.label:
-                    node.base_path = str(Path(bpy.context.scene.render.filepath).parent / node.label)
-                    node.format.file_format = "OPEN_EXR_MULTILAYER"
-                    node.format.color_mode = "RGBA"
-                    node.format.color_depth = "32"
-                else:
-                    node.base_path = str(Path(bpy.context.scene.render.filepath).parent / label_name)
-                    node.format.file_format = "PNG"
-                    node.format.color_mode = "RGBA"
-                    node.format.color_depth = "16"
-
-            node.file_slots[0].path = label_name + "_"  # Set file name
-
-# bpy.ops.render.render(write_still=True)  # Render the image
-
-
+inner BG = BG.Inner_Beauty
+Gopal CH = CH.Gopal_Beauty
+Lighray 2 = Lightray2_]
 
 '''
