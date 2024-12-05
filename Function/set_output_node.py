@@ -43,7 +43,7 @@ def set_main_node():
     
     scenes = [s for s in local_scenes]
     for scn in scenes:
-            scn.render.filepath = path.join(renderpath + '\\' + shotname)
+            scn.render.filepath = path.join(renderpath + '\\' + shotname + '_')
     
     output_nodes = [n for s in scenes for n in s.node_tree.nodes if n.type == "OUTPUT_FILE"]
     for node in output_nodes:
@@ -96,7 +96,7 @@ def set_main_node():
             filename = node.file_slots.keys()[0]
             node_output = os.path.join(renderpath + '\\' + label_name + '\\' + pass_name + '\\')
             node.base_path = node_output
-            node.file_slots[filename].path = pass_name + '_'
+            node.file_slots[filename].path = label_name + pass_name + '_'
             node.format.file_format = "PNG"
             node.format.color_depth = "16" 
                 
