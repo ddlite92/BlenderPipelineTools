@@ -20,8 +20,6 @@ from bpy.app.handlers import persistent
 from bpy.utils import previews, register_class, unregister_class
 from pathlib import Path
 
-path = r"M:\BBBGS2_Gentar_Arc\2_Episode\Episode_15\6_Post\3_Output\1_Render\PART B\_MONSTA"
-
 filepath = bpy.data.filepath
 
 mainScreen = bpy.context.window
@@ -83,8 +81,6 @@ def scene_name():
     for scene_name in scene_names:
         scene = bpy.context.scene.name
         return scene
-    
-bpy.context.scene.render.filepath = os.path.join(path, folder(), scene_name(), "Beauty", "Beauty_" )
 
 def output_node():
     for node in mainScreen.scene.node_tree.nodes:
