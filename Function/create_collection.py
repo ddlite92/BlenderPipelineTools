@@ -1,7 +1,7 @@
 import bpy
 
 
-coll = ['BBB', 'Gopal', 'Qually', 'Probe', 'Adudu', 'Roksasa', 'Ochobot']
+coll = ['BBB', 'Gopal', 'Qually', 'Probe', 'Adudu', 'Roksasa', 'Ochobot', 'MechaGentar']
 
 def create_collection():
     scene = bpy.context.scene
@@ -16,6 +16,3 @@ create_collection()
     
 
 
-
-
- 
