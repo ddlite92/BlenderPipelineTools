@@ -12,8 +12,6 @@ def get_1st_lvl():
     print("full path: ", full_path)
     return(full_path)  
 
-get_1st_lvl()
-
 def get_workpath():
     #filepath = bpy.data.filepath
     blendpath = '\\'.join(filepath.split('\\')[7:8]) + '\\'
