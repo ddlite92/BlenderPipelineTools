@@ -28,6 +28,8 @@ node_tree = bpy.context.scene.node_tree
 #links = node_tree.links
 # path = str(pathlib.Path().home() / "folder" / "file.blend")
 
+# merge clean setup and build setup in 1 setup eg Clean and Build button
+
 # --------------- render setup
 
 def get_anim_blendfile():
@@ -271,11 +273,17 @@ class MonstaPanel(bpy.types.Panel):
         col = layout.column(align=True)
         col.operator("object.link_coll_operator", icon="PREFERENCES")
         
+        row = layout.row()
+        row.label(text= "Setup")
+        
         col = layout.column(align=True)
         col.operator("object.set_output_path", icon="FILEBROWSER")
 
         col = layout.column(align=True)
         col.operator("object.set_camera_global", icon="VIEW_CAMERA")
+        
+        row = layout.row()
+        row.label(text= "Custom")
         
 
 classes = (
