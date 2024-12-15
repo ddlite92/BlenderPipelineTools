@@ -18,7 +18,7 @@ for current_dir, _, files in os.walk("."):
             not f.endswith(".blend1")
             and not ".2021" in f
             and not ".2022" in f
-            #and "SH016" in f
+            and "SH032" in f
 #            and not "SH002" in f
 #            and not "SH003" in f
 #            and not "SH004" in f
@@ -36,20 +36,13 @@ for current_dir, _, files in os.walk("."):
 print("------------")
 """Script for running"""
 for blendfile in sorted(blendfiles):
-    # for blendfile in sorted(blendfiles, key=lambda t: os.stat(t).st_mtime):
     # blendfile = os.path.abspath(file)
-    # modified_time = os.path.getmtime(blendfile)
-    # convert_time = time.ctime(modified_time)
     if sys.platform.startswith("win32"):
         # command = (
-        #     'C:\\blender\\blender.exe -b "%s"' % blendfile + " -y -P command.py"
-        # )
+        #   'C:\\blender\\blender.exe -b "%s"' % blendfile + " -y -P command.py")
         command2 = (
-            'C:\\blender\\blender.exe -b "%s"' % blendfile + " -y -P transmission_ray.py"
-        )
-        # if 'Apr 24' in convert_time:
+            'C:\\blender\\blender.exe -b "%s"' % blendfile + " -y -P transmission_ray.py")
         # print(command)
-        # print (blendfile + " | " + blendfile[-15:] + " | " + convert_time)
         # subprocess.run(r'C:\WINDOWS\system32\cmd.exe /C "%s"' % command)
         subprocess.run(r'C:\WINDOWS\system32\cmd.exe /C "%s"' % command2)
     elif sys.platform.startswith("linux"):
@@ -58,4 +51,4 @@ for blendfile in sorted(blendfiles):
             + " -y -P settings.py "
         )
         subprocess.run(command, shell=True)
-        # print(command)
+        #print(command)
