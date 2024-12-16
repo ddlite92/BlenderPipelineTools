@@ -156,7 +156,7 @@ class SetCamera(bpy.types.Operator):
     
     def execute(self, context):
         scenes = bpy.data.scenes
-        global_camera = bpy.data.scenes["BG"].camera
+        global_camera = bpy.data.scenes["RIM"].camera
         for scn in bpy.data.scenes:
             scn.camera = global_camera
 
