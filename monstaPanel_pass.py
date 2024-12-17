@@ -196,7 +196,7 @@ class OutputPath(bpy.types.Operator):
                 label_name = node.label.split("_Matte")[0]
                 pass_name = 'Matte'
                 splitOutput = os.path.join(renderpath + '\\' + shotname + '_')
-                node.base_path = os.path.join(renderpath + '\\' + label_name + '\\' + pass_name + '\\')
+                node.base_path = os.path.join(renderpath + '\\' + label_name + pass_name + '\\')
                 node.format.file_format = "OPEN_EXR_MULTILAYER"
                 node.format.color_mode = "RGBA"
                 node.format.color_depth = "32"
