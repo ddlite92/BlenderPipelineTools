@@ -9,8 +9,8 @@ BG = bpy.data.scenes["BG"]
 RIM = bpy.data.scenes["RIM"]   
 
 #bpy.context.window.scene = BG
-bpy.data.scenes["BG"].cycles.texture_limit_render = '2048'
-bpy.data.scenes["BG"].cycles.samples = 256
+bpy.data.scenes["BG"].cycles.texture_limit_render = '4096'
+bpy.data.scenes["BG"].cycles.samples = 512
 
 for window in bpy.context.window_manager.windows:
     for area in window.screen.areas: # iterate through areas in current screen
