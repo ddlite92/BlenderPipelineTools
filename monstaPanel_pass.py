@@ -100,81 +100,6 @@ def set_renderpath():
     print('final: ', final)
     return(final)
 
-            
-# ----------------- addon stuff
-
-class PurgeSceneOperator(bpy.types.Operator):
-     # Operator to perform purge functionality
-    bl_idname = "object.purge_scene_operator"
-    bl_label = "Purge Scene"
-
-    def execute(self, context):
-        scene = context.scene
-        
-        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-
-        # Execute the purge function
-        # purge_orphans(local_ids, linked_ids, recursive)
-        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
-
-            def draw(self, context):
-                self.layout.label(text=message)
-
-            bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
-        ShowMessageBox("Orphan data purged successfully!")
-        return {'FINISHED'}
-
-class CleanOperator(bpy.types.Operator):
-     # Operator to clean the collections
-    bl_idname = "object.clean_coll_operator"
-    bl_label = "Clean Setup (WIP)"
-    
-    def execute(self, context):
-        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-           
-        return {'FINISHED'}
-
-
-class LinkAnimFile(bpy.types.Operator):
-     # Operator to link collections form anim file
-    bl_idname = "object.link_coll_operator"
-    bl_label = "Build Setup (WIP)"
-    
-    def execute(self, context):
-        load_anim_lib()
-        get_anim_blendfile()
-        link_collections()
-        
-        report = "LGT File build done !"
-
-        self.report({"INFO"}, f"{report}")
-        return {"FINISHED"}
-
-class SetCamera(bpy.types.Operator):
-    bl_idname =  "object.set_camera_global"
-    bl_label = "Set Camera"
-    
-    def execute(self, context):
-        scenes = bpy.data.scenes
-        global_camera = bpy.data.scenes["_RIM"].camera
-        frame_start = bpy.data.scenes["_RIM"].frame_start
-        frame_end = bpy.data.scenes["_RIM"].frame_end
-        global_camera = bpy.data.scenes["_RIM"].camera
-        
-        for scn in bpy.data.scenes:
-            scn.camera = global_camera
-            scn.frame_start = frame_start
-            scn.frame_end = frame_end
-
-        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
-
-                def draw(self, context):
-                    self.layout.label(text=message)
-
-                bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
-        ShowMessageBox("Set camera done!")
-        return {'FINISHED'}
-
 class OutputPath(bpy.types.Operator):
     # Operator to set path
     bl_idname =  "object.set_output_path"
@@ -254,8 +179,145 @@ class OutputPath(bpy.types.Operator):
                 bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
         ShowMessageBox("Set path done!")
         return {'FINISHED'}
-               
+            
+# ----------------- addon stuff
+
+class PurgeSceneOperator(bpy.types.Operator):
+     # Operator to perform purge functionality
+    bl_idname = "object.purge_scene_operator"
+    bl_label = "Purge Scene"
+
+    def execute(self, context):
+        scene = context.scene
         
+        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+
+        # Execute the purge function
+        # purge_orphans(local_ids, linked_ids, recursive)
+        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+            def draw(self, context):
+                self.layout.label(text=message)
+
+            bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
+        ShowMessageBox("Orphan data purged successfully!")
+        return {'FINISHED'}
+
+class CleanOperator(bpy.types.Operator):
+     # Operator to clean the collections
+    bl_idname = "object.clean_coll_operator"
+    bl_label = "Clean Setup (WIP)"
+    
+    def execute(self, context):
+        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+           
+        return {'FINISHED'}
+
+
+class LinkAnimFile(bpy.types.Operator):
+     # Operator to link collections form anim file
+    bl_idname = "object.link_coll_operator"
+    bl_label = "Build Setup (WIP)"
+    
+    def execute(self, context):
+        load_anim_lib()
+        get_anim_blendfile()
+        link_collections()
+        
+        report = "LGT File build done !"
+
+        self.report({"INFO"}, f"{report}")
+        return {"FINISHED"}
+
+class SetCamera(bpy.types.Operator):
+    bl_idname =  "object.set_camera_global"
+    bl_label = "Set Camera"
+    
+    def execute(self, context):
+        scenes = bpy.data.scenes
+        global_camera = bpy.data.scenes["_RIM"].camera
+        frame_start = bpy.data.scenes["_RIM"].frame_start
+        frame_end = bpy.data.scenes["_RIM"].frame_end
+        global_camera = bpy.data.scenes["_RIM"].camera
+        for scn in bpy.data.scenes:
+            scn.camera = global_camera
+            scn.frame_start = frame_start
+            scn.frame_end = frame_end
+
+        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+                def draw(self, context):
+                    self.layout.label(text=message)
+
+                bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
+        ShowMessageBox("Set camera done!")
+        return {'FINISHED'}
+    
+class ExportCamOperator(bpy.types.Operator):
+     # Operator to perform purge functionality
+    bl_idname = "object.export_cam_operator"
+    bl_label = "Export CAM"
+
+    def execute(self, context):
+        bpy.context.view_layer.objects.active = bpy.context.scene.camera
+
+        # Define the export path (adjust as needed)
+        directory = os.path.dirname(bpy.data.filepath)  
+        file = os.path.join(directory, "cam.jsx")
+
+        try:
+            # Execute the export operator
+            bpy.ops.export.jsx(filepath=file)
+            print(f"Exported JSX to: {filepath}")
+
+        except Exception as e:
+            print(f"Error during export: {e}")
+
+        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+            def draw(self, context):
+                self.layout.label(text=message)
+
+            bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
+        ShowMessageBox("CAM Exported!")
+        return {'FINISHED'}
+
+class NullOperator(bpy.types.Operator):
+     # Operator to perform purge functionality
+    bl_idname = "object.export_null_operator"
+    bl_label = "Export Null"
+
+    def execute(self, context):
+        selected_objects = bpy.context.selected_objects
+
+        if not selected_objects:
+            print("No objects selected.")
+            return
+    
+        bpy.context.view_layer.objects.active = selected_objects[0]   
+        directory = os.path.dirname(bpy.data.filepath)  
+        file = os.path.join(directory, "null.jsx")
+
+        try:
+            # Execute the export operator
+            bpy.ops.export.jsx(filepath=file)
+            print(f"Exported JSX to: {filepath}")
+
+        except Exception as e:
+            print(f"Error during export: {e}")
+
+
+        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+            def draw(self, context):
+                self.layout.label(text=message)
+
+            bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
+        ShowMessageBox("Null Exported!")
+        return {'FINISHED'}
+               
+# ----------------- PANEL
+
 class MonstaPanel(bpy.types.Panel):
      # Displayy panel in 3D view
     bl_category = "Monsta"
@@ -269,6 +331,12 @@ class MonstaPanel(bpy.types.Panel):
         
         col = layout.column(align=True)
         col.operator("object.purge_scene_operator", icon="FILE_REFRESH")
+
+        col = layout.column(align=True)
+        col.operator("object.export_cam_operator", icon="SPHERE")
+
+        col = layout.column(align=True)
+        col.operator("object.export_null_operator", icon="SPHERE")
         
         row = layout.row()
         row.label(text= "Render Tab")
@@ -299,6 +367,8 @@ classes = (
         LinkAnimFile,
         OutputPath,
         SetCamera,
+        ExportCamOperator,
+        NullOperator,
         )
 
 # register, unregister = bpy.utils.register_classes_factory(classes)
