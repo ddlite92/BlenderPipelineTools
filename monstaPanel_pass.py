@@ -159,6 +159,7 @@ class SetCamera(bpy.types.Operator):
         global_camera = bpy.data.scenes["BG"].camera
         frame_start = bpy.data.scenes["RIM"].frame_start
         frame_end = bpy.data.scenes["RIM"].frame_end
+        global_camera = bpy.data.scenes["RIM"].camera
         for scn in bpy.data.scenes:
             scn.camera = global_camera
             scn.frame_start = frame_start
