@@ -119,10 +119,9 @@ class OutputPath(bpy.types.Operator):
         output_nodes = [n for s in scenes for n in s.node_tree.nodes if n.type == "OUTPUT_FILE"]
         for node in output_nodes:
             if "_Matte" in node.label:
-                label_name = node.label.split("_Matte")[0]
                 pass_name = 'Matte'
-                splitOutput = os.path.join(renderpath + '\\' + shotname + '_')
-                node.base_path = os.path.join(renderpath + '\\' + label_name + pass_name + '\\')
+                node_name = node.name
+                node.base_path = os.path.join(renderpath + '\\' + node_name + '\\' + pass_name + '\\')
                 node.format.file_format = "OPEN_EXR_MULTILAYER"
                 node.format.color_mode = "RGBA"
                 node.format.color_depth = "32"
@@ -224,6 +223,40 @@ class LinkAnimFile(bpy.types.Operator):
         get_anim_blendfile()
         link_collections()
         
+        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+
+        # Execute the purge function
+        # purge_orphans(local_ids, linked_ids, recursive)
+        def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+            def draw(self, context):
+                self.layout.label(text=message)
+
+            bpy.context.window_manager.popup_menu(draw, title = title, icon = icon) 
+        ShowMessageBox("Orphan data purged successfully!")
+        return {'FINISHED'}
+
+class CleanOperator(bpy.types.Operator):
+     # Operator to clean the collections
+    bl_idname = "object.clean_coll_operator"
+    bl_label = "Clean Setup (WIP)"
+    
+    def execute(self, context):
+        bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+           
+        return {'FINISHED'}
+
+
+class LinkAnimFile(bpy.types.Operator):
+     # Operator to link collections form anim file
+    bl_idname = "object.link_coll_operator"
+    bl_label = "Build Setup (WIP)"
+    
+    def execute(self, context):
+        load_anim_lib()
+        get_anim_blendfile()
+        link_collections()
+       
         report = "LGT File build done !"
 
         self.report({"INFO"}, f"{report}")
@@ -238,7 +271,7 @@ class SetCamera(bpy.types.Operator):
         global_camera = bpy.data.scenes["_RIM"].camera
         frame_start = bpy.data.scenes["_RIM"].frame_start
         frame_end = bpy.data.scenes["_RIM"].frame_end
-        global_camera = bpy.data.scenes["_RIM"].camera
+        
         for scn in bpy.data.scenes:
             scn.camera = global_camera
             scn.frame_start = frame_start
