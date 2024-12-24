@@ -44,10 +44,9 @@ def set_main_node():
     output_nodes = [n for s in scenes for n in s.node_tree.nodes if n.type == "OUTPUT_FILE"]
     for node in output_nodes:
         if "_Matte" in node.label:
-            label_name = node.label.split("_Matte")[0]
             pass_name = 'Matte'
-            splitOutput = os.path.join(renderpath + '/' + shotname + '_')
-            node.base_path = os.path.join(renderpath + '/' + label_name + '/' + pass_name + '/')
+            node_name = node.name
+            node.base_path = os.path.join(renderpath + '/' + node_name + '/' + pass_name + '/')
             node.format.file_format = "OPEN_EXR_MULTILAYER"
             node.format.color_mode = "RGBA"
             node.format.color_depth = "32"
@@ -87,9 +86,7 @@ def set_main_node():
                                 
         else:
             label_name = node.label.split(".")[1]
-            print('label_name1: ', label_name)
             label_name = node.label.split("_")[0]
-            print('label_name2: ', label_name)
             pass_name = node.label.split("_")[1]
             filename = node.file_slots.keys()[0]
             node_output = os.path.join(renderpath + '/' + label_name + '/' + pass_name + '/')
