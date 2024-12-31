@@ -137,7 +137,7 @@ class OutputPath(bpy.types.Operator):
                 node.format.color_mode = "RGB"
                 node.format.color_depth = "16"
             
-            elif "RIM_" in node.label:
+            elif "RIM" in node.label:
                 #label_name = node.label
                 pass_name = node.label.split("_")[0]
                 filename = node.file_slots.keys()[0]
@@ -148,7 +148,7 @@ class OutputPath(bpy.types.Operator):
                 node.format.color_mode = "RGBA"
                 node.format.color_depth = "16"
             
-            elif "Lightray_" in node.label:
+            elif "Lightray" in node.label:
                 #label_name = node.label
                 pass_name = node.label.split("_")[0]
                 filename = node.file_slots.keys()[0]
