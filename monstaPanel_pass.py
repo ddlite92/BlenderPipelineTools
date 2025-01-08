@@ -100,6 +100,12 @@ def set_renderpath():
     print('final: ', final)
     return(final)
 
+def set_pr():
+    filepath = bpy.data.filepath
+    pr_path = '\\'.join(filepath.split('\\')[:15]) + '\\'
+    print(pr_path)
+    return(pr_path)
+
 class OutputPath(bpy.types.Operator):
     # Operator to set path
     bl_idname =  "object.set_output_path"
@@ -109,6 +115,9 @@ class OutputPath(bpy.types.Operator):
         scene = context.scene
         renderpath = set_renderpath()
         shotname = get_shotname()
+        pr_folder = set_pr()
+        owner = 'DD'
+        prerender = 'PreRender'
 
         local_scenes = [s for s in bpy.data.scenes if not s.library]
         
@@ -155,6 +164,16 @@ class OutputPath(bpy.types.Operator):
                 node_output = os.path.join(renderpath + '\\' + pass_name + '\\')
                 node.base_path = node_output
                 node.file_slots[filename].path = pass_name + '_'
+                node.format.file_format = "PNG"
+                node.format.color_mode = "RGBA"
+                node.format.color_depth = "16"
+            
+            elif "PR" in node.name:
+                name = node.name.split("_")[1]
+                filename = node.file_slots.keys()[0]
+                node_output = os.path.join(pr_folder +  prerender )
+                node.base_path = node_output
+                node.file_slots[filename].path = shotname + '_' + owner + '_' + name + '_'
                 node.format.file_format = "PNG"
                 node.format.color_mode = "RGBA"
                 node.format.color_depth = "16"
