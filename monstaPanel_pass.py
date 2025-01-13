@@ -2,7 +2,7 @@ bl_info = {
     "name": "Monsta",
     "description": "Monsta Addon",
     "author": "Monsta",
-    "version": (1, 0),
+    "version": (2, 0),
     "blender": (3, 3, 3),
     "category": "Render",
 }
